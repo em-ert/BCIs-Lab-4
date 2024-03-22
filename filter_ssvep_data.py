@@ -8,22 +8,19 @@ Created on Mon Mar 11 18:13:43 2024
 @author: eertle
 @author: SkylerDY
 """
-
-# %% Part 1: Load the Data
-"""
-Cell 1: Create 2 new python scripts and save them as filter_ssvep_data.py and 
-test_filter_ssvep_data.py. In your test_ script, use functions written in previous labs to load the data 
-from subject 1 into a python dictionary called data. 
-"""
+import numpy as np
+from matplotlib import pyplot as plt
+from scipy import signal
 
 # %% Part 2: Design a Filter
 """
-Cell 2: In your filter_ module, write a function called make_bandpass_filter() that takes the following inputs:  
+Cell 2: 
     • low_cutoff, the lower cutoff frequency (in Hz),  
     • high_cutoff, the higher cutoff frequency (in Hz),  
-    • filter_type, the filter type, (this will be passed to the “window” input of scipy.signal.firwin and should be “hann” by default),  
+    • filter_type, the filter type, (this will be passed to the “window” input of scipy.signal.firwin 
+    and should be “hann” by default),  
     • filter_order, the filter order, and  
-    • fs, the sampling frequency (in Hz).  
+    • fs, the sampling frequency (in Hz). 
 It should then create a filter matching these specifications and return the 
 filter coefficients in an array called filter_coefficients (of length 
 filter_order+1). Your code should plot the impulse response and frequency 
@@ -38,6 +35,47 @@ following questions: A) How much will 12Hz oscillations be attenuated by the
 filter?  B) Experiment with higher and lower order filters. Describe how 
 changing the order changes the frequency and impulse response of the filter. 
 """
+def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_order=10, fs=1000):
+    # Returns coefficients of FIR filter (fs+1 length)
+    filter_coefficients = signal.firwin(numtaps=filter_order+1, cutoff=[low_cutoff, high_cutoff], window=filter_type, pass_zero='bandpass', fs=fs)
+
+    # Frequencies at which impulse response was computed and the frequency response as complex numbers
+    frequencies, impulse_response = signal.freqz(filter_coefficients, fs=fs)
+    
+    plt.figure(1, clear=True, figsize=(9, 6))
+
+    ax1 = plt.subplot(2,1,1)
+    # Top end of time range for graphing
+    impulse_response_max_time = len(impulse_response) / fs
+    # Time between samples in seconds
+    sample_length = 1 / fs
+    x = np.arange(0, impulse_response_max_time, sample_length)
+
+    ax1.set_title(f'Impulse Response')
+    ax1.set_xlabel("time (s)")
+    ax1.set_ylabel("gain")
+    # plot event
+    ax1.plot(x, filter_coefficients)
+
+    # plot EEG data using channels
+    ax2 = plt.subplot(2,1,2)
+    # Top end of time range for graphing
+    filter_max_frequency = fs
+    # Time between samples in seconds
+    sample_length = 1 / (filter_order + 1)
+    x = np.arange(0, filter_max_frequency, sample_length)
+
+    ax2.set_title(f'Frequency Response')
+    ax2.set_xlabel("frequency (Hz)")
+    ax2.set_ylabel("amplitude (dB)")
+    ax2.plot(frequencies, impulse_response)
+            
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+    
+    plt.savefig(f'Images/hann_filter_{low_cutoff}-{high_cutoff}_order{filter_order}.png')
+    return filter_coefficients
 
 # %% Part 3: Filter the EEG Signals
 """
