@@ -57,6 +57,8 @@ def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_ord
     plt.figure(1, clear=True, figsize=(9, 6))
 
     ax1 = plt.subplot(2,1,1)
+    
+    plt.suptitle(f'{low_cutoff} - {high_cutoff} Hz {filter_order} Order {filter_type} Filter')
 
     ax1.set_title('Impulse Response')
     ax1.set_xlabel("time (s)")

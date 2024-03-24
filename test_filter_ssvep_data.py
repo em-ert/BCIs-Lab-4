@@ -43,7 +43,7 @@ filter?  B) Experiment with higher and lower order filters. Describe how
 changing the order changes the frequency and impulse response of the filter. 
 """
 
-filter_coefficients = filter_ssvep_data.make_bandpass_filter(low_cutoff=11, high_cutoff=13, filter_type='hann', filter_order=1000, fs=fs)
+filter_coefficients = filter_ssvep_data.make_bandpass_filter(low_cutoff=11, high_cutoff=13, filter_type='hann', filter_order=10000, fs=fs)
 
 # %% Part 3: Filter the EEG Signals
 """
