@@ -111,7 +111,7 @@ the brain signals responding to the events in the way you’d expect? Check some
 other electrodes – which electrodes respond in the same way and why? 
 """
 
-
+filter_ssvep_data.plot_ssvep_amplitudes(data, envelope_12hz, envelope_15hz, 'Oz', 12, 15, subject)
 
 # %% Part 6: Examine the Spectra
 """

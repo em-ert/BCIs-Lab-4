@@ -35,7 +35,7 @@ following questions: A) How much will 12Hz oscillations be attenuated by the
 filter?  B) Experiment with higher and lower order filters. Describe how 
 changing the order changes the frequency and impulse response of the filter. 
 """
-def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_order=10, fs=1000):
+def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_order=10, fs=1000,subject=1):
     # Returns coefficients of FIR filter (fs+1 length)
     # Filter coefficients (b)
     filter_coefficients = signal.firwin(numtaps=filter_order+1, cutoff=[low_cutoff, high_cutoff], window=filter_type, pass_zero='bandpass', fs=fs)
@@ -83,7 +83,7 @@ def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_ord
     plt.tight_layout()
     plt.show()
     
-    plt.savefig(f'Images/hann_filter_{low_cutoff}-{high_cutoff}_order{filter_order}.png')
+    plt.savefig(f'Images/subject_{subject}_hann_filter_{low_cutoff}-{high_cutoff}_order{filter_order}.png')
     return filter_coefficients
 
 # %% Part 3: Filter the EEG Signals
@@ -143,7 +143,7 @@ of oscillations (on every channel at every time point) in an array called
 envelope. 
 """
 
-def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None):
+def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None,subject=1):
     envelope = np.abs(signal.hilbert(filtered_data))
     
     if channel_to_plot != None:        
@@ -165,7 +165,7 @@ def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None
         plt.tight_layout()
         plt.show()
     
-    plt.savefig(f'Images/{ssvep_frequency}Hz_filtered_data_with_envelope_at_channel_{channel_to_plot}.png')
+    plt.savefig(f'Images/subject_{subject}_{ssvep_frequency}Hz_filtered_data_with_envelope_at_channel_{channel_to_plot}.png')
     return envelope
 
 # %% Part 5: Plot the Amplitudes
@@ -192,7 +192,40 @@ other electrodes – which electrodes respond in the same way and why?
 """
 
 def plot_ssvep_amplitudes(data, envelope_a, envelope_b, channel_to_plot, ssvep_freq_a, ssvep_freq_b, subject):
-    1
+    # Create the subplot
+    fig, ax = plt.subplots(nrows=2, sharex=True, layout='constrained')
+    sample_count = data['eeg'].shape[1] # Number of samples
+    sample_duration = 1 / data['fs'] # Find sampling rate using 'fs' field of data
+    # Create range of times samples were collected to be used later as x-axis
+    times = np.arange(0, sample_count * sample_duration, sample_duration)
+    # Find the start and end of each stimulus
+    event_beginnings = data['event_samples'] * sample_duration
+    event_ends = event_beginnings + data['event_durations'] * sample_duration
+    # Extract types of stimulus from event_types
+    types = data['event_types']
+    duration_color = 'tab:blue' # Set color for stimulus duration lines
+    
+    # For plot one, plot horizontal line from event_beginnings[x] to 
+    # event_ends[x] using types to set y-axis value
+    ax[0].hlines(types, event_beginnings, event_ends, color=duration_color)
+    # Plot dots at event_beginnings and event_ends
+    ax[0].scatter(event_beginnings, types, color=duration_color)
+    ax[0].scatter(event_ends, types, color=duration_color)
+    ax[0].set_ylabel('Flash frequency') # Label Y axis of plot 1
+    
+    # For plot two, plot the raw data from each channel in channels_to_plot 
+    # using a for loop
+    
+    # Find the index of the target channel in data['channels']
+    channel_index = np.where(data['channels'] == channel_to_plot)[0][0]
+    # Plot raw EEG data of target channel
+    ax[1].plot(times, envelope_a[channel_index])
+    ax[1].plot(times, envelope_b[channel_index])
+    ax[1].set_xlabel('time (s)') # Label x-axis
+    ax[1].set_ylabel('Voltage (μV)') # Label y-axis
+    ax[1].legend([f'Amplitude at {ssvep_freq_a} Hz',f'Amplitude at {ssvep_freq_b} Hz']) # Create legend for plot 2 in subplot
+    fig.suptitle(f'Subject {subject} Filtered Amplitudes') # name subplot
+    plt.savefig(f'Images/SSVEP_S{subject}_filtered_amplitudes_{ssvep_freq_a}Hz_{ssvep_freq_b}Hz_at_channel_{channel_to_plot}.png') # Save subplot
 
 # %% Part 6: Examine the Spectra
 """
