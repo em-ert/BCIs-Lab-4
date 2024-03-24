@@ -100,6 +100,9 @@ to capture 12Hz and 15Hz oscillations) and store the results in separate
 arrays. 
 """
 
+def filter_data(data,b, a=1):
+    return signal.filtfilt(b, a, data)
+
 # %% Part 4: Calculate the Envelope
 """
 Cell 4: In your filter_ module, write a function called get_envelope() that 
