@@ -37,38 +37,45 @@ changing the order changes the frequency and impulse response of the filter.
 """
 def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_order=10, fs=1000):
     # Returns coefficients of FIR filter (fs+1 length)
+    # Filter coefficients (b)
     filter_coefficients = signal.firwin(numtaps=filter_order+1, cutoff=[low_cutoff, high_cutoff], window=filter_type, pass_zero='bandpass', fs=fs)
 
     # Frequencies at which impulse response was computed and the frequency response as complex numbers
-    frequencies, impulse_response = signal.freqz(filter_coefficients, fs=fs)
+    # frequncy axis values corresponding to filter in freq domain, Filter magnitude response in the frequency domain
+    frequencies, impulse_response = signal.freqz(filter_coefficients, a=1, fs=fs)
+    
+    # Top end of time range for graphing
+    impulse_response_max_time = len(filter_coefficients) / fs
+    # Time between samples in seconds
+    sample_length = 1 / fs
+    time_array = np.arange(0, impulse_response_max_time, sample_length)
+    
+    impulse = np.zeros(len(time_array))
+    impulse[0] = 1
+    filter_impulse_response = signal.lfilter(filter_coefficients, a=1, x=impulse)
     
     plt.figure(1, clear=True, figsize=(9, 6))
 
     ax1 = plt.subplot(2,1,1)
-    # Top end of time range for graphing
-    impulse_response_max_time = len(impulse_response) / fs
-    # Time between samples in seconds
-    sample_length = 1 / fs
-    x = np.arange(0, impulse_response_max_time, sample_length)
 
-    ax1.set_title(f'Impulse Response')
+    ax1.set_title('Impulse Response')
     ax1.set_xlabel("time (s)")
     ax1.set_ylabel("gain")
     # plot event
-    ax1.plot(x, filter_coefficients)
+    ax1.plot(time_array, filter_impulse_response)
+    ax1.grid()
 
     # plot EEG data using channels
     ax2 = plt.subplot(2,1,2)
-    # Top end of time range for graphing
-    filter_max_frequency = fs
-    # Time between samples in seconds
-    sample_length = 1 / (filter_order + 1)
-    x = np.arange(0, filter_max_frequency, sample_length)
+    
+    impulse_response = np.abs(impulse_response)**2
+    impulse_response_dB = 10*np.log10(impulse_response/np.max(impulse_response))
 
-    ax2.set_title(f'Frequency Response')
+    ax2.set_title('Frequency Response')
     ax2.set_xlabel("frequency (Hz)")
     ax2.set_ylabel("amplitude (dB)")
-    ax2.plot(frequencies, impulse_response)
+    ax2.plot(frequencies, impulse_response_dB)
+    ax2.grid()
             
     plt.legend()
     plt.tight_layout()
