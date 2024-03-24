@@ -101,7 +101,7 @@ arrays.
 """
 
 def filter_data(data,b, a=1):
-    return signal.filtfilt(b, a, data['eeg'])
+    return signal.filtfilt(b, a, (data['eeg'] * 1e6))
 
 # %% Part 4: Calculate the Envelope
 """
@@ -144,7 +144,29 @@ envelope.
 """
 
 def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None):
-    envelope = np.abs(signal.hilbert())
+    envelope = np.abs(signal.hilbert(filtered_data))
+    
+    if channel_to_plot != None:        
+        channel_index = np.where(data['channels'] == channel_to_plot)[0][0]
+        sample_duration = 1 / data['fs'] # Find sampling rate using 'fs' field of data
+        times = np.arange(0, len(filtered_data[channel_index]) * sample_duration, sample_duration)
+        # Plot filtered EEG data of target channel with envelope
+        plt.figure(1, clear=True, figsize=(9, 6))
+        plt.plot(times, filtered_data[channel_index])
+        plt.plot(times,envelope[channel_index])
+        plt.legend(['Filtered Data','Envelope'])
+        if ssvep_frequency == None:
+            plt.title('Unknown Frequency Isolated')
+        else:
+            plt.title(f'Data Filtered for {ssvep_frequency} Hz')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Voltage (uV)')
+        plt.grid()
+        plt.tight_layout()
+        plt.show()
+    
+    plt.savefig(f'Images/{ssvep_frequency}Hz_filtered_data_with_envelope_at_channel_{channel_to_plot}.png')
+    return envelope
 
 # %% Part 5: Plot the Amplitudes
 """
@@ -168,6 +190,9 @@ stimulation frequency changes? How large and consistent are those changes? Are
 the brain signals responding to the events in the way you’d expect? Check some 
 other electrodes – which electrodes respond in the same way and why? 
 """
+
+def plot_ssvep_amplitudes(data, envelope_a, envelope_b, channel_to_plot, ssvep_freq_a, ssvep_freq_b, subject):
+    1
 
 # %% Part 6: Examine the Spectra
 """

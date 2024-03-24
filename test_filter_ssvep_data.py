@@ -85,6 +85,9 @@ function twice to get the 12Hz and 15Hz envelopes. In each case, choose
 electrode Oz to plot. 
 """
 
+envelope_12hz = filter_ssvep_data.get_envelope(data, filtered_data_12hz, 'Oz', 12)
+envelope_15hz = filter_ssvep_data.get_envelope(data, filtered_data_15hz, 'Oz', 15)
+
 # %% Part 5: Plot the Amplitudes
 """
 Cell 5: In your filter_ module, create a function called plot_ssvep_amplitudes
@@ -107,6 +110,8 @@ stimulation frequency changes? How large and consistent are those changes? Are
 the brain signals responding to the events in the way you’d expect? Check some 
 other electrodes – which electrodes respond in the same way and why? 
 """
+
+
 
 # %% Part 6: Examine the Spectra
 """
