@@ -60,10 +60,10 @@ arrays.
 """
 
 filter_coefficients = filter_ssvep_data.make_bandpass_filter(low_cutoff=11, high_cutoff=13, filter_type='hann', filter_order=1000, fs=fs)
-filtered_data_12hz = filter_ssvep_data.filter_data(eeg,filter_coefficients)
+filtered_data_12hz = filter_ssvep_data.filter_data(data,filter_coefficients)
 
 filter_coefficients = filter_ssvep_data.make_bandpass_filter(low_cutoff=14, high_cutoff=16, filter_type='hann', filter_order=1000, fs=fs)
-filtered_data_15hz = filter_ssvep_data.filter_data(eeg,filter_coefficients)
+filtered_data_15hz = filter_ssvep_data.filter_data(data,filter_coefficients)
 
 # %% Part 4: Calculate the Envelope
 """

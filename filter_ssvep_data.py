@@ -101,7 +101,7 @@ arrays.
 """
 
 def filter_data(data,b, a=1):
-    return signal.filtfilt(b, a, data)
+    return signal.filtfilt(b, a, data['eeg'])
 
 # %% Part 4: Calculate the Envelope
 """
@@ -121,7 +121,30 @@ function should return the amplitude of oscillations (on every channel at every
 time point) in an array called envelope. In your test_ script, call this 
 function twice to get the 12Hz and 15Hz envelopes. In each case, choose 
 electrode Oz to plot. 
+
+Update from Teams:
+    
+Cell 4: In your filter_ module, write a function called get_envelope() that
+takes the following inputs:
+        • data, the raw data dictionary,
+        • filtered_data, the filtered data (one of the outputs from the last 
+          part),
+        • channel_to_plot, an optional string indicating which channel you’d 
+          like to plot(default is None)
+        • ssvep_frequency, the SSVEP frequency being isolated (this is for the 
+          title – default is None).
+If channel_to_plot is not None (which should be the default), the function 
+should create a new figure and plot the band-pass filtered data on the given 
+channel with its envelope on top. (If your computer slows or freezes when you 
+try to do this, it’s ok to plot every 10th sample instead of every sample.) If 
+the ssvep_frequency input is None, your plot's title should state that the 
+frequency being isolated is unknown. The function should return the amplitude 
+of oscillations (on every channel at every time point) in an array called 
+envelope. 
 """
+
+def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None):
+    envelope = np.abs(signal.hilbert())
 
 # %% Part 5: Plot the Amplitudes
 """
