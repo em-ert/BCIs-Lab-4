@@ -205,6 +205,8 @@ envelope.
 
 def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None,subject=1):
     """
+    Find the amplitude of the filtered EEG data at each time point for each 
+    channel
     
 
     Parameters
