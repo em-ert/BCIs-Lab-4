@@ -156,6 +156,9 @@ def filter_data(data,b, a=1):
         Contains filtered EEG data
 
     """
+    
+    # Use scipy.signal.filtfilt to filter the raw EEG data which is converted
+    # at this step to uV instead of V
     filtered_data = signal.filtfilt(b, a, (data['eeg'] * 1e6))
     return filtered_data
 
@@ -201,9 +204,40 @@ envelope.
 """
 
 def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None,subject=1):
+    """
+    
+
+    Parameters
+    ----------
+    data : dict size D where D = number of domains
+        The raw EEG data dictionary
+    filtered_data : Array of float 64 size ChxS where Ch = number of channels 
+    and S = number of samples
+        Contains filtered EEG data
+    channel_to_plot : str, optional with default value of None
+        If value does not equal None, this function will plot the envelope on
+        top of the filtered EEG data for the listed channel
+    ssvep_frequency : int, optional with default of None
+        If value does not equal None, this will add the value of the target
+        frequency to the title of the plot.
+    subject : int, optional with default value of 1
+        The ID number of the subject
+
+    Returns
+    -------
+    envelope : Array of float64, size ChxS where Ch = number of channels 
+    and S = number of samples
+        Contains the value of the EEG amplitude at each time point.
+
+    """
+    # Use scipy.signal.hilbert to extract the EEG's envelope. The absolute 
+    # value is used to only return positive values as amplitude cannot be negative
     envelope = np.abs(signal.hilbert(filtered_data))
     
-    if channel_to_plot != None:        
+    # If channel_to_plot does not = None, plot the envelope and filtered EEG
+    # data of the listed channel
+    if channel_to_plot != None: 
+        # Find the index value of the listed channel
         channel_index = np.where(data['channels'] == channel_to_plot)[0][0]
         sample_duration = 1 / data['fs'] # Find sampling rate using 'fs' field of data
         times = np.arange(0, len(filtered_data[channel_index]) * sample_duration, sample_duration)
@@ -212,6 +246,7 @@ def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None
         plt.plot(times, filtered_data[channel_index])
         plt.plot(times,envelope[channel_index])
         plt.legend(['Filtered Data','Envelope'])
+        # If the target ssvep frequency is listed, add the number to the title
         if ssvep_frequency == None:
             plt.title('Unknown Frequency Isolated')
         else:
@@ -222,6 +257,7 @@ def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None
         plt.tight_layout()
         plt.show()
     
+    # Save the plot
     plt.savefig(f'Images/subject_{subject}_{ssvep_frequency}Hz_filtered_data_with_envelope_at_channel_{channel_to_plot}.png')
     return envelope
 
