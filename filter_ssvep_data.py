@@ -287,6 +287,35 @@ other electrodes – which electrodes respond in the same way and why?
 """
 
 def plot_ssvep_amplitudes(data, envelope_a, envelope_b, channel_to_plot, ssvep_freq_a, ssvep_freq_b, subject):
+    """
+    Create a plot to compare two different envelopes for a given channel.
+
+    Parameters
+    ----------
+    data : dict size D where D = number of domains
+        The raw EEG data dictionary
+    envelope_a : Array of float64, size ChxS where Ch = number of channels 
+    and S = number of samples
+        Contains the value of the EEG amplitude at each time point for 
+        envelope a.
+    envelope_b : Array of float64, size ChxS where Ch = number of channels 
+    and S = number of samples
+        Contains the value of the EEG amplitude at each time point for 
+        envelope b.
+    channel_to_plot : str
+        Selects which channel will be used to compare envelopes.
+    ssvep_freq_a : int
+        The target frequency for envelope a.
+    ssvep_freq_b : int
+        The target frequency for envelope b.
+    subject : int, optional with default value of 1
+        The ID number of the subject
+
+    Returns
+    -------
+    None.
+
+    """
     # Create the subplot
     fig, ax = plt.subplots(nrows=2, sharex=True, layout='constrained')
     sample_count = data['eeg'].shape[1] # Number of samples
@@ -308,18 +337,18 @@ def plot_ssvep_amplitudes(data, envelope_a, envelope_b, channel_to_plot, ssvep_f
     ax[0].scatter(event_ends, types, color=duration_color)
     ax[0].set_ylabel('Flash frequency') # Label Y axis of plot 1
     
-    # For plot two, plot the raw data from each channel in channels_to_plot 
-    # using a for loop
+    # For plot two, plot the envelopes for the channel in channel_to_plot 
     
     # Find the index of the target channel in data['channels']
     channel_index = np.where(data['channels'] == channel_to_plot)[0][0]
-    # Plot raw EEG data of target channel
+    # Plot the envelopes
     ax[1].plot(times, envelope_a[channel_index])
     ax[1].plot(times, envelope_b[channel_index])
     ax[1].set_xlabel('time (s)') # Label x-axis
     ax[1].set_ylabel('Voltage (μV)') # Label y-axis
     ax[1].legend([f'Amplitude at {ssvep_freq_a} Hz',f'Amplitude at {ssvep_freq_b} Hz']) # Create legend for plot 2 in subplot
     fig.suptitle(f'Subject {subject} Filtered Amplitudes') # name subplot
+    # Save the subplot
     plt.savefig(f'Images/SSVEP_S{subject}_filtered_amplitudes_{ssvep_freq_a}Hz_{ssvep_freq_b}Hz_at_channel_{channel_to_plot}.png') # Save subplot
 
 # %% Part 6: Examine the Spectra
