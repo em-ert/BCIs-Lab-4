@@ -12,7 +12,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import signal
 
-# %% Part 2: Design a Filter
+#%% Part 2: Design a Filter
+
+
 """
 Cell 2: 
     • low_cutoff, the lower cutoff frequency (in Hz),  
@@ -35,8 +37,35 @@ following questions: A) How much will 12Hz oscillations be attenuated by the
 filter?  B) Experiment with higher and lower order filters. Describe how 
 changing the order changes the frequency and impulse response of the filter. 
 """
-def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_order=10, fs=1000,subject=1):
-    # Returns coefficients of FIR filter (fs+1 length)
+def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_order=1000, fs=1000):
+    """
+    This function will use the scipy.signal.firwin function to create filter 
+    coefficients and use scipy.signal.freqz to help create plots used to 
+    visualize the frequency response and impulse response, saving those plots
+    in the Images folder.
+
+    Parameters
+    ----------
+    low_cutoff : int
+        Set the low end of the frequencies to cut off when filtering
+    high_cutoff : int
+        Set the high end of the frequencies to cut off when filtering
+    filter_type : str, optional with default of 'hann'
+        Set which type of filter to use. See the scipy.signal.firwin function
+        description for more options
+    filter_order : non-negative int, optional with default of 1000
+        Set the filter order (number of coefficients -1).
+    fs : non-negative int, optional with default of 1000
+        Sampling rate of the eeg data.
+
+    Returns
+    -------
+    filter_coefficients : Array of float64 size C where C = number of 
+        coefficients (order +1)
+        Returns coefficients to be used in filtering EEG data.
+    
+    """
+    # Returns coefficients of FIR filter (order+1 length)
     # Filter coefficients (b)
     filter_coefficients = signal.firwin(numtaps=filter_order+1, cutoff=[low_cutoff, high_cutoff], window=filter_type, pass_zero='bandpass', fs=fs)
 
@@ -48,16 +77,21 @@ def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_ord
     impulse_response_max_time = len(filter_coefficients) / fs
     # Time between samples in seconds
     sample_length = 1 / fs
+    # Create the length of time used to filter EEG data for graphing
     time_array = np.arange(0, impulse_response_max_time, sample_length)
     
+    # Find the filter's impulse response values using lfilter
     impulse = np.zeros(len(time_array))
     impulse[0] = 1
     filter_impulse_response = signal.lfilter(filter_coefficients, a=1, x=impulse)
     
+    # Create figure
     plt.figure(1, clear=True, figsize=(9, 6))
-
+    
+    # Create subplot
     ax1 = plt.subplot(2,1,1)
     
+    # Plot impulse response
     plt.suptitle(f'{low_cutoff} - {high_cutoff} Hz {filter_order} Order {filter_type} Filter')
 
     ax1.set_title('Impulse Response')
@@ -67,7 +101,7 @@ def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_ord
     ax1.plot(time_array, filter_impulse_response)
     ax1.grid()
 
-    # plot EEG data using channels
+    # Plot frequency response
     ax2 = plt.subplot(2,1,2)
     
     impulse_response = np.abs(impulse_response)**2
@@ -83,7 +117,8 @@ def make_bandpass_filter(low_cutoff, high_cutoff, filter_type='hann', filter_ord
     plt.tight_layout()
     plt.show()
     
-    plt.savefig(f'Images/subject_{subject}_hann_filter_{low_cutoff}-{high_cutoff}_order{filter_order}.png')
+    #Save subplot
+    plt.savefig(f'Images/hann_filter_{low_cutoff}-{high_cutoff}_order{filter_order}.png')
     return filter_coefficients
 
 # %% Part 3: Filter the EEG Signals
@@ -101,7 +136,29 @@ arrays.
 """
 
 def filter_data(data,b, a=1):
-    return signal.filtfilt(b, a, (data['eeg'] * 1e6))
+    """
+    Uses the scipy.signal.filtfilt to filter EEG data.
+
+    Parameters
+    ----------
+    data : dict size D where D = number of domains
+        The raw EEG data dictionary
+    Array of float64 size C where C = number of coefficients (order +1)
+        Coefficients to be used in filtering EEG data.
+    a : int, optional with default value of 1.
+        Useful only if using an iir filter, but must be included as "1" for fir
+        filters
+
+    Returns
+    -------
+    filtered_data : Array of float 64 size ChxS where Ch = number of channels 
+    and S = number of samples
+        Contains filtered EEG data
+
+    """
+    filtered_data = signal.filtfilt(b, a, (data['eeg'] * 1e6))
+    return filtered_data
+
 
 # %% Part 4: Calculate the Envelope
 """
@@ -168,7 +225,7 @@ def get_envelope(data, filtered_data, channel_to_plot=None, ssvep_frequency=None
     plt.savefig(f'Images/subject_{subject}_{ssvep_frequency}Hz_filtered_data_with_envelope_at_channel_{channel_to_plot}.png')
     return envelope
 
-# %% Part 5: Plot the Amplitudes
+#%% Part 5: Plot the Amplitudes
 """
 Cell 5: In your filter_ module, create a function called plot_ssvep_amplitudes
 () that takes the following inputs:  
