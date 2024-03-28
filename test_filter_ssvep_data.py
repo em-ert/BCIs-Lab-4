@@ -126,9 +126,22 @@ spectra should be normalized and converted to dB as in your previous lab.
 In your test_ script, call this function. In a comment, describe how the 
 spectra change at each stage and why. Changes you should address include (but 
 are not limited to) the following:  
+    
     1. Why does the overall shape of the spectrum change after filtering? 
+    Answer: The overall shape of the spectrum changes because frequencies above 
+    the high cutoff and those below the low cutoff are being suppressed by the 
+    filter. The spectrum will change, looking more like the unsupressed 
+    frequencies.
+    
     2. In the filtered data on Oz, why do 15Hz trials appear to have less power 
     than 12Hz trials at most frequencies?  
+    Answer: Alpha waves in the occipital lobe overpower the filtering, leaving 
+    the overall spectra power greater than the 15 hz spectra despite filtering 
+    for 15 hz.
+        
     3. In the envelope on Oz, why do we no longer see any peaks at 15Hz? 
+    Answer: No peaks are seen because the envelope is an average amplitude of 
+    the signal at each timepoint. This ends up looking like a smooth line 
+    rather than a series of peaks.
 """
 filter_ssvep_data.plot_filtered_spectra(data, filtered_data_15hz, envelope_15hz)

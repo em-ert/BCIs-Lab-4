@@ -389,36 +389,34 @@ are not limited to) the following:
     3. In the envelope on Oz, why do we no longer see any peaks at 15Hz? 
 """
 
-def plot_filtered_spectra(data, filtered_data, envelope, channels=['Fz', 'Oz']):
-    
+def plot_filtered_spectra(data, filtered_data, envelope, channels=['Fz', 'Oz'], subject=1):
     """
     Plots the mean frequency spectrum across trials for a given subject. Plots
     can be generated for any number of channels in the data (the max is 32).
     Spectra are plotted separately for 12Hz and 15Hz trials.
 
+
     Parameters
     ----------
-    eeg_epochs_fft : numpy array (type: float, size: number of events x number of channels x number of frequencies)
-        Fast Fourier Transforms of epoch data; frequency content of epoched signals.
-    fft_frequencies : numpy array (type: float, size: number of frequencies)
-        The frequency corresponding to each column in the FFT; eeg_epochs_fft[:,:,i] is the energy at frequency fft_frequencies[i] Hz.
-    is_trial_15Hz : numpy array (type: bool, size: number of events)
-        An array in which is_trial_15Hz[i] is True if the light was flashing at 15Hz during trial/epoch i.
-    channels : list (type: string, size: number of channels)
-        The list of the names of each channel found in the original dataset
-    channels_to_plot : list (type: string, size: number of channels to be plotted)
-        A list of channels to plot.
-    subject : int
-        The identification number of the subject whose data should be loaded.
+    data :  dict size D where D = number of domains
+        The raw EEG data dictionary
+    filtered_data : Array of float 64 size ChxS where Ch = number of channels 
+    and S = number of samples
+        Contains filtered EEG data
+    envelope : Array of float64, size ChxS where Ch = number of channels 
+    and S = number of samples
+        Contains the value of the EEG amplitude at each time point.
+    channels : list of str, optional with default of ['Fz', 'Oz'].
+        List of strings containing the names of the two channels to compare.
+    subject : int, optional with default value of 1.
+        ID of the subject that was plotted.
 
     Returns
     -------
-    spectrum_db_12Hz : numpy array (type: float, size: number of channels x number of frequencies)
-        The mean power spectrum of 12Hz trials in dB.
-    spectrum_db_15Hz : numpy array (type: float, size: number of channels x number of frequencies)
-        The mean power spectrum of 15Hz trials in dB.
+    None.
 
     """
+    
     
     # Get information from data dictionary
     fs = data['fs'] 
@@ -537,7 +535,7 @@ def plot_filtered_spectra(data, filtered_data, envelope, channels=['Fz', 'Oz']):
     plt.show()
     
     # Save the resulting plots as images (format: .png)
-    plt.savefig(f'Images/Filtered_Spectra.png')
+    plt.savefig(f'Images/subject-{subject}_channels_{channels[0]}_and_{channels[1]}_Filtered_Spectra_comparison.png')
         
         
         
