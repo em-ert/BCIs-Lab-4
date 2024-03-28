@@ -109,12 +109,13 @@ def plot_raw_data(data, subject: int = 1, channels_to_plot: list = ['Fz', 'Oz'])
     plt.savefig(f'Images/S{subject}_SSVEP_Raw_Data.png')
 
 
-def epoch_ssvep_data(data_dict, epoch_start_time=0, epoch_end_time=20):    
+def epoch_ssvep_data(data_dict, epoch_start_time=0, epoch_end_time=20, alternate_eeg_data=None):    
     """
     Epochs the data into user-defined time windows and returns the epochs as
     well as additional arrays--one containing time data for samples in each
     epoch and the other information about light flashing frequency for each
-    event/epoch.
+    event/epoch. If alternate_eeg_data is provided, will epoch that instead
+    of the original data.
 
     Parameters
     ----------
@@ -124,6 +125,9 @@ def epoch_ssvep_data(data_dict, epoch_start_time=0, epoch_end_time=20):
         Desired start time of epochs relative to events, in seconds. The default is 0.
     epoch_end_time : int, optional
         Desired end time of epochs relative to events, in seconds. The default is 20.
+    alternate_eeg_data : Array of float64, size ChxS where Ch = number of channels 
+    and S = number of samples    
+        
 
     Returns
     -------
@@ -137,9 +141,13 @@ def epoch_ssvep_data(data_dict, epoch_start_time=0, epoch_end_time=20):
     """
     # Extract the relevant variables from the dictionary
     fs              = data_dict['fs']
-    eeg             = data_dict['eeg'] * 1e6 # initially in volts, scaled to microvolts to match example
     event_samples   = data_dict['event_samples']
     event_types     = data_dict['event_types']
+    
+    if alternate_eeg_data is None:
+        eeg = data_dict['eeg'] * 1e6 # initially in volts, scaled to microvolts to match example
+    else:
+        eeg = alternate_eeg_data
 
     # Use eeg_time in combination with user input to determine temporal details
     # of each epoch
@@ -207,7 +215,7 @@ def get_frequency_spectrum(eeg_epochs: np.ndarray, fs: float):
     return eeg_epochs_fft, fft_frequencies
 
 
-def plot_power_spectrum(eeg_epochs_fft: np.ndarray, fft_frequencies: np.ndarray, is_trial_15Hz: np.ndarray, channels: list, channels_to_plot: list, subject: int):
+def plot_power_spectrum(eeg_epochs_fft: np.ndarray, fft_frequencies: np.ndarray, is_trial_15Hz: np.ndarray, channels: list, channels_to_plot: list, subject: int, generate_plot : bool = True):
     """
     Plots the mean frequency spectrum across trials for a given subject. Plots
     can be generated for any number of channels in the data (the max is 32).
@@ -227,6 +235,8 @@ def plot_power_spectrum(eeg_epochs_fft: np.ndarray, fft_frequencies: np.ndarray,
         A list of channels to plot.
     subject : int
         The identification number of the subject whose data should be loaded.
+    generate_plot : bool, optional
+        True if a plot should be generated, False otherwise. The default is True. 
 
     Returns
     -------
@@ -259,77 +269,79 @@ def plot_power_spectrum(eeg_epochs_fft: np.ndarray, fft_frequencies: np.ndarray,
     spectrum_db_12Hz = 10 * np.log10(spectrum_12Hz)
     spectrum_db_15Hz = 10 * np.log10(spectrum_15Hz)
     
-    channel_count = np.size(channels_to_plot)
+    if generate_plot:
     
-    # Set number of max rows and axis dimensions
-    MAX_ROW_COUNT = 8
-    AXIS_LENGTH = 8
-    AXIS_HEIGHT = 3
-    
-    if channel_count <= MAX_ROW_COUNT:
-        row_count = channel_count
-        column_count = 1
-    else:
-        row_count = MAX_ROW_COUNT
-        column_count = int(np.ceil(channel_count / row_count))
-    fig = plt.figure(2, figsize=(AXIS_LENGTH * column_count, AXIS_HEIGHT * row_count), clear=True)
-    x = fft_frequencies
-    
-    # Plot each subplot
-    for plot_index in range(channel_count):
+        channel_count = np.size(channels_to_plot)
         
-        channel = channels_to_plot[plot_index]
+        # Set number of max rows and axis dimensions
+        MAX_ROW_COUNT = 8
+        AXIS_LENGTH = 8
+        AXIS_HEIGHT = 3
         
-        # Find channel index
-        channel_index = np.where(channels==channel)
-        channel_index = int(channel_index[0][0])
-        
-        # Mean power spectra to be plotted
-        y1 = spectrum_db_12Hz[channel_index, :]
-        y2 = spectrum_db_15Hz[channel_index, :]
-
-        # Set up axes to maximize use of plot space
-        if (plot_index == 0):
-            ax = plt.subplot(row_count, column_count, plot_index + 1)
-            ax.tick_params('x', labelbottom=False)
-        elif ((plot_index + 1) > channel_count - column_count):
-            ax = plt.subplot(row_count, column_count, plot_index + 1, sharex=fig.axes[0])
-            ax.tick_params('x', labelbottom=True)
-            # ax.set_xlabel('Voltage (uV)', fontsize=8)
+        if channel_count <= MAX_ROW_COUNT:
+            row_count = channel_count
+            column_count = 1
         else:
-            ax = plt.subplot(row_count, column_count, plot_index + 1, sharex=fig.axes[0])
-            ax.tick_params('x', labelbottom=False)
+            row_count = MAX_ROW_COUNT
+            column_count = int(np.ceil(channel_count / row_count))
+        fig = plt.figure(2, figsize=(AXIS_LENGTH * column_count, AXIS_HEIGHT * row_count), clear=True)
+        x = fft_frequencies
+        
+        # Plot each subplot
+        for plot_index in range(channel_count):
             
-        # Plot target ERP
-        line_12Hz, = ax.plot(x, y1, label='12Hz')
-
-        # Plot nontarget ERP
-        line_15Hz, = ax.plot(x, y2, label='15Hz')
-        
-        # Add a dotted line at x=12 and x=15
-        ax.axvline(x=12, linestyle='--', color='blue', linewidth=1)
-        ax.axvline(x=15, linestyle='--', color='orange', linewidth=1)
-        
-        # Set x-axis range
-        plt.xlim(fft_frequencies[0], fft_frequencies[-1])
-        
-        # Set subplot title and labels
-        ax.set_title(f'Channel {channel}', fontsize=10)
-        # ax.set_ylabel('Frequency (Hz)', fontsize=8)
-        
-        ax.legend(handles=[line_12Hz, line_15Hz], loc='upper right', fontsize=8)
-
-    # Adjust layout for better spacing
-    fig.set_tight_layout(True)   
-    plt.suptitle(f'Frequency Content for SSVEP S{subject}')    
-    fig.supxlabel('Voltage (uV)')
-    fig.supylabel('Frequency (Hz)')
-
-    # Show the plot
-    plt.show()
+            channel = channels_to_plot[plot_index]
+            
+            # Find channel index
+            channel_index = np.where(channels==channel)
+            channel_index = int(channel_index[0][0])
+            
+            # Mean power spectra to be plotted
+            y1 = spectrum_db_12Hz[channel_index, :]
+            y2 = spectrum_db_15Hz[channel_index, :]
     
-    # Save the resulting plots as images (format: .png)
-    plt.savefig(f'Images/S{subject}_SSVEP_Frequencies_for_{channel_count}_Channels.png')
+            # Set up axes to maximize use of plot space
+            if (plot_index == 0):
+                ax = plt.subplot(row_count, column_count, plot_index + 1)
+                ax.tick_params('x', labelbottom=False)
+            elif ((plot_index + 1) > channel_count - column_count):
+                ax = plt.subplot(row_count, column_count, plot_index + 1, sharex=fig.axes[0])
+                ax.tick_params('x', labelbottom=True)
+                # ax.set_xlabel('Voltage (uV)', fontsize=8)
+            else:
+                ax = plt.subplot(row_count, column_count, plot_index + 1, sharex=fig.axes[0])
+                ax.tick_params('x', labelbottom=False)
+                
+            # Plot target ERP
+            line_12Hz, = ax.plot(x, y1, label='12Hz')
+    
+            # Plot nontarget ERP
+            line_15Hz, = ax.plot(x, y2, label='15Hz')
+            
+            # Add a dotted line at x=12 and x=15
+            ax.axvline(x=12, linestyle='--', color='blue', linewidth=1)
+            ax.axvline(x=15, linestyle='--', color='orange', linewidth=1)
+            
+            # Set x-axis range
+            plt.xlim(fft_frequencies[0], fft_frequencies[-1])
+            
+            # Set subplot title and labels
+            ax.set_title(f'Channel {channel}', fontsize=10)
+            # ax.set_ylabel('Frequency (Hz)', fontsize=8)
+            
+            ax.legend(handles=[line_12Hz, line_15Hz], loc='upper right', fontsize=8)
+    
+        # Adjust layout for better spacing
+        fig.set_tight_layout(True)   
+        plt.suptitle(f'Frequency Content for SSVEP S{subject}')    
+        fig.supxlabel('Voltage (uV)')
+        fig.supylabel('Frequency (Hz)')
+    
+        # Show the plot
+        plt.show()
+        
+        # Save the resulting plots as images (format: .png)
+        plt.savefig(f'Images/S{subject}_SSVEP_Frequencies_for_{channel_count}_Channels.png')
 
     
     return spectrum_db_12Hz, spectrum_db_15Hz

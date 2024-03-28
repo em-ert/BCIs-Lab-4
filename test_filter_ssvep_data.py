@@ -115,7 +115,7 @@ filter_ssvep_data.plot_ssvep_amplitudes(data, envelope_12hz, envelope_15hz, 'Oz'
 
 # %% Part 6: Examine the Spectra
 """
-Cell 5: In your filter_ module, create a function called plot_filtered_spectra()
+Cell 6: In your filter_ module, create a function called plot_filtered_spectra()
 that takes the following inputs: 
     • data, the raw data dictionary, 
     • filtered_data, the filtered data 
@@ -131,3 +131,4 @@ are not limited to) the following:
     than 12Hz trials at most frequencies?  
     3. In the envelope on Oz, why do we no longer see any peaks at 15Hz? 
 """
+filter_ssvep_data.plot_filtered_spectra(data, filtered_data_15hz, envelope_15hz)
